@@ -1,0 +1,8 @@
+# ide confs
+.idea
+OnkTiatoo.iml
+
+# env confs
+.env
+
+node_modules
