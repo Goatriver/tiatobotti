@@ -5,4 +5,5 @@ OnkTiatoo.iml
 # env confs
 .env
 
+build
 node_modules

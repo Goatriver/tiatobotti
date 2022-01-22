@@ -1,8 +1,9 @@
 {
   "extends": "@tsconfig/node16/tsconfig.json",
-  "outDir": "./build",
+  "outDir": "build",
   "compilerOptions": {
-    "preserveConstEnums": true
+    "preserveConstEnums": true,
+    "outDir": "build"
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "**/*.spec.ts"]
