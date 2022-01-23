@@ -1,26 +1,26 @@
-import {SlackViewMiddlewareArgs} from '@slack/bolt';
-import {ChatUpdateResponse} from '@slack/web-api';
+import { SlackViewMiddlewareArgs } from '@slack/bolt';
+import { ChatUpdateResponse } from '@slack/web-api';
 
-import {Game} from '../game/game';
-import {Question} from '../game/types';
-import {getJoinGameBlocks, getLobbyBlocks} from './blocks';
-import {app} from '../app';
-import {generateQuestionId, getUser} from './helpers';
+import { Game } from '../game/game';
+import { Player, Question } from '../game/types';
+import { getJoinGameBlocks, getLobbyBlocks } from './blocks';
+import { app } from '../app';
+import { generateQuestionId, getUser } from './helpers';
 
 // When user submits question modal
 app.view('question_view', async ({ body, ack, view }: SlackViewMiddlewareArgs) => {
   await ack();
   const user = await getUser(body.user.id);
   const viewData = JSON.parse(view.private_metadata);
-  const player = {
-    name: user.profile.display_name_normalized,
+  const player: Player = {
+    name: user.name,
     id: user.id,
     score: 0,
     isAdmin: viewData.isAdmin,
-    avatar: user.profile.image_512,
+    avatar: user.avatar,
     isReady: false,
-    lastQuestionSent: new Date(),
-  }
+    lastQuestionSent: new Date()
+  };
 
   await Game.get(viewData.gameId).then(game => {
     game.addOrGetPlayer(player).then(p => {
@@ -38,29 +38,29 @@ app.view('question_view', async ({ body, ack, view }: SlackViewMiddlewareArgs) =
         choices: [
           {
             text: values.answer_right.answer_right.value as string,
-            isCorrect: true,
+            isCorrect: true
           },
           {
             text: values.wrong_answer_1.wrong_answer_1.value as string,
-            isCorrect: false,
+            isCorrect: false
           },
           {
             text: values.wrong_answer_2.wrong_answer_2.value as string,
-            isCorrect: false,
+            isCorrect: false
           },
           {
             text: values.wrong_answer_3.wrong_answer_3.value as string,
-            isCorrect: false,
-          },
+            isCorrect: false
+          }
         ]
-      }
+      };
       game.addQuestion(q).then(() => {
-        if(!p.isAdmin) {
+        if (!p.isAdmin) {
           app.client.chat.postEphemeral({
             user: body.user.id,
             channel: game.getChannelId(),
             blocks: getLobbyBlocks(p.isAdmin, game.id),
-            text: "You're in the game and your question is saved!",
+            text: "You're in the game and your question is saved!"
           });
         }
 
@@ -75,11 +75,11 @@ app.view('question_view', async ({ body, ack, view }: SlackViewMiddlewareArgs) =
         });
       });
     }).catch((reason) => {
-      console.error("Error submitting question modal", reason);
+      console.error('Error submitting question modal', reason);
       app.client.chat.postEphemeral({
         user: body.user.id,
         channel: game.getChannelId(),
-        text: reason.message,
+        text: reason.message
       });
     });
   });
