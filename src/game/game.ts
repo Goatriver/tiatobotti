@@ -36,6 +36,7 @@ export class Game {
       game.addFakes(debug);
     }
     this.games.push(game);
+    console.log(`Game ${game.id} started!`);
     return game;
   }
 
@@ -154,6 +155,7 @@ export class Game {
       return ps.score - pf.score;
     });
     Game.games = Game.games.filter(g => g !== this);
+    console.log(`Game ${this.id} ended!`);
     return this.players;
   }
 
