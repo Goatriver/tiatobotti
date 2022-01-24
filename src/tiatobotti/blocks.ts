@@ -242,10 +242,8 @@ export const getEndGameBlocks = (players: Player[]): (Block | SectionBlock | Hea
   ];
 };
 
-export const getReadyMessageBlocks = (
-  questionsKnown: number,
-  total: number,
-  playerQuestionRightAnswers: number): (SectionBlock | Block)[] => {
+export const getReadyMessageBlocks = (questionsKnown: number, total: number):
+  (SectionBlock | Block)[] => {
   return [
     {
       type: 'section',
@@ -262,9 +260,7 @@ export const getReadyMessageBlocks = (
       type: 'section',
       text: {
         type: 'mrkdwn',
-        text: `You got *${questionsKnown}/${total}* of the questions right! \n` +
-          `*${playerQuestionRightAnswers}* player${playerQuestionRightAnswers !== 1 ? 's' : ''} ` +
-          'got your question right!'
+        text: `You got *${questionsKnown}/${total}* of the questions right! \n`,
       }
     }
   ];

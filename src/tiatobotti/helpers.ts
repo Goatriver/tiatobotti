@@ -87,14 +87,11 @@ export const sendQuestion = async (player: Player, game: Game): Promise<void> =>
         q => q.playersAnsweredCorrect.some(p => p.id === player.id)
       ).length;
       const total = game.questions.length - 1;
-      const playerQuestionRightAnswers = game.questions.filter(
-        q => q.owner.id === player.id
-      )[0].playersAnsweredCorrect.length;
 
       app.client.chat.postMessage({
         channel: player.id,
         text: "That's it, you are ready!",
-        blocks: getReadyMessageBlocks(questionsKnown, total, playerQuestionRightAnswers)
+        blocks: getReadyMessageBlocks(questionsKnown, total)
       });
       return;
     }
