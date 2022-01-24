@@ -6,10 +6,14 @@ import { getUser, launchQModal } from './helpers';
 
 const isDev = process.env.ENVIRONMENT ? process.env.ENVIRONMENT : "production";
 
+const getCommandName = (command: string): string => {
+  return isDev === 'production' ? command : command + '-dev';
+}
+
 // /startquiz command. This initializes new game and makes the "caller" an admin
 app.command(
-  isDev === 'production' ? '/startquiz' : '/startquiz-dev'
-  ,async ({ payload, say, body, ack, client }
+  getCommandName('/startquiz'),
+  async ({ payload, say, body, ack, client }
   ): Promise<void> => {
   await ack();
   const gameId = `${payload.channel_id}_${payload.user_id}`;

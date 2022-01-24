@@ -106,6 +106,7 @@ export const sendQuestion = async (player: Player, game: Game): Promise<void> =>
     }
 
     player.lastQuestionSent = new Date();
+
     app.client.chat.postMessage({
       channel: player.id,
       text: 'I sent you a question!',
