@@ -20,13 +20,22 @@ export const getUser = async (id: string): Promise<MyUser> => {
       avatar: 'https://upload.wikimedia.org/wikipedia/en/thumb/9/9a/Trollface_non-free.png/220px-Trollface_non-free.png'
     };
 
-    if (response.user && response.user.profile && response.user.profile.display_name_normalized) {
-      user.name = response.user.profile.display_name_normalized;
+    if (response.user && response.user.profile) {
+      if(response.user.profile.display_name_normalized) {
+        user.name = response.user.profile.display_name_normalized;
+      } else if(response.user.profile.display_name) {
+        user.name = response.user.profile.display_name;
+      } else if(response.user.profile.real_name_normalized) {
+        user.name = response.user.profile.real_name_normalized;
+      } else if(response.user.profile.real_name) {
+        user.name = response.user.profile.real_name;
+      }
+
+      if (response.user.profile.image_512) {
+        user.avatar = response.user.profile.image_512;
+      }
     }
 
-    if (response.user && response.user.profile && response.user.profile.image_512) {
-      user.avatar = response.user.profile.image_512;
-    }
 
     return user;
   }).catch(reason => {

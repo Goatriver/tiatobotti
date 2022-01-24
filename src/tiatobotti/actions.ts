@@ -78,6 +78,7 @@ app.action('cancel_game', async ({ ack, payload, body }) => {
   payload = <ButtonAction>payload;
   await Game.get(payload.value).then(game => {
     Game.games = Game.games.filter(g => g !== game);
+    console.log(`Game ${game.id} ended!`);
     app.client.chat.delete({
       ts: game.ts,
       channel: game.getChannelId()
