@@ -1,1 +1,1 @@
-worker: npm run build && node ./build/app.js
+worker: npm start
