@@ -69,7 +69,7 @@ export const generateFakeQuestion = (player: Player): Question => {
   for (let i = 0; i < 4; i++) {
     const rndmItem = getRandomItem(answers, choices.map(c => c.text));
     choices.push({
-      text: rndmItem,
+      text: `${rndmItem}${i === 0 && ' <--'}`,
       isCorrect: i === 0
     });
   }

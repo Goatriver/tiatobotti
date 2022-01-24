@@ -204,15 +204,26 @@ export const getQuestionBlocks = (q: Question, gameId: string, progress: string)
   ];
 };
 
-export const getEndGameBlocks = (players: Player[]): (Block | SectionBlock | HeaderBlock)[] => {
+export const getEndGameBlocks = (players: Player[], questions: Question[]): (Block | SectionBlock | HeaderBlock)[] => {
   const getPosition = (index: number): string => {
     switch (index) {
       case 0: return ':first_place_medal:';
       case 1: return ':second_place_medal:';
       case 2: return ':third_place_medal:';
-      default: return `*${(index + 1).toString()}*`;
+      default: return `${(index + 1).toString()}`;
     }
   };
+
+  const getQuestionInfo = (player: Player): string => {
+    const playerQuestion = questions.filter(q => q.owner.id === player.id)[0];
+    const rightAnswer = playerQuestion.choices.filter(c => c.isCorrect)[0];
+    const rightAnswersCount = playerQuestion.playersAnsweredCorrect.length;
+    const totalAnswers = playerQuestion.playersAnswered.length;
+
+    return `"${playerQuestion.question}" \n` +
+      `Answer: "${rightAnswer.text}" \n` +
+      `${rightAnswersCount}/${totalAnswers} got it right!`
+  }
 
   return [
     {
@@ -229,7 +240,8 @@ export const getEndGameBlocks = (players: Player[]): (Block | SectionBlock | Hea
       {
         type: 'section',
         text: {
-          text: `${getPosition(index)}: ${p.name}, ${p.score} pts!`,
+          text: `*${getPosition(index)}: ${p.name}, ${p.score} pts!* \n` +
+          `Question: ${getQuestionInfo(p)}`,
           type: 'mrkdwn'
         },
         accessory: {

@@ -130,7 +130,7 @@ app.action('answer', async ({ ack, action, body }) => {
           app.client.chat.postMessage({
             channel: game.getChannelId(),
             text: 'Game over!',
-            blocks: getEndGameBlocks(playerList)
+            blocks: getEndGameBlocks(playerList, game.questions)
           });
         });
       }
