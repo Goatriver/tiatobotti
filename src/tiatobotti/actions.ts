@@ -7,7 +7,7 @@ import {
 import { app } from '../app';
 import { Game } from '../game/game';
 import { launchQModal, sendQuestion } from './helpers';
-import { GameAlreadyStartedError, NotEnoughPlayersError } from '../game/errors';
+import {GameAlreadyStartedError, NotEnoughPlayersError, PlayerAlreadyAnsweredError} from '../game/errors';
 import { ChoiceValue, getEndGameBlocks } from './blocks';
 import { GamePhase } from '../game/types';
 import { RadioButtonsAction } from '@slack/bolt/dist/types/actions/block-action';
@@ -111,16 +111,19 @@ app.action('answer', async ({ ack, action, body }) => {
     const question = game.questions.filter(
       q => q.id === answer.qId
     )[0];
+    if(question.playersAnswered.some(p => p.id === player.id)) {
+      throw new PlayerAlreadyAnsweredError(question.question);
+    }
     const timeDiff = new Date().getTime() - player.lastQuestionSent.getTime();
     question.playersAnswered.push(player);
-
+    let scoreEarned = 0;
     if (answer.isCorrect) {
-      const multiplier = game.countTimeMultiplier(timeDiff / 1000);
-      player.score += (10 * multiplier);
+      scoreEarned = game.countAnswerPoints(timeDiff / 1000);
+      player.score += scoreEarned;
       question.playersAnsweredCorrect.push(player);
     }
 
-    sendQuestion(player, game).then(() => {
+    sendQuestion(player, game, scoreEarned).then(() => {
       const readyPlayers = game.players.filter(p => p.isReady);
       if (readyPlayers.length === game.players.length) {
         game.endGame().then(playerList => {

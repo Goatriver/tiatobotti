@@ -71,7 +71,11 @@ export const launchQModal = async (
 };
 
 // helper function to launch a question DM
-export const sendQuestion = async (player: Player, game: Game): Promise<void> => {
+export const sendQuestion = async (
+  player: Player,
+  game: Game,
+  scoreEarned?: number
+): Promise<void> => {
   // COMPUTER DEBUG LOGIC
   if (game.debug) {
     const computerPlayers = game.players.filter(p => p.id.includes('debug'));
@@ -79,11 +83,10 @@ export const sendQuestion = async (player: Player, game: Game): Promise<void> =>
       game.getNextQuestion(cpuPlayer).then(question => {
         if (question) {
           question.playersAnswered.push(cpuPlayer);
-          if (Math.random() < 0.5) {
+          if (Math.random() < 0.65) {
             question.playersAnsweredCorrect.push(cpuPlayer);
-            const randomTime = Math.floor(Math.random() * 45);
-            const multiplier = game.countTimeMultiplier(randomTime);
-            cpuPlayer.score += (10 * multiplier);
+            const randomTime = Math.floor(Math.random() * 48);
+            cpuPlayer.score += game.countAnswerPoints(randomTime)
           }
         }
       });
@@ -100,7 +103,7 @@ export const sendQuestion = async (player: Player, game: Game): Promise<void> =>
       app.client.chat.postMessage({
         channel: player.id,
         text: "That's it, you are ready!",
-        blocks: getReadyMessageBlocks(questionsKnown, total)
+        blocks: getReadyMessageBlocks(questionsKnown, total, scoreEarned)
       });
       return;
     }
@@ -111,7 +114,12 @@ export const sendQuestion = async (player: Player, game: Game): Promise<void> =>
       channel: player.id,
       text: 'I sent you a question!',
       value: game.id,
-      blocks: getQuestionBlocks(question, game.id, game.getProgress(player))
+      blocks: getQuestionBlocks(
+        question,
+        game.id,
+        game.getProgress(player),
+        scoreEarned,
+      )
     });
   }).catch(reason => {
     console.error('Error sending questions', reason);

@@ -20,6 +20,7 @@ export interface Question {
   choices: AnswerChoice[];
   playersAnswered: Player[];
   playersAnsweredCorrect: Player[];
+  xtraPoints?: number;
 }
 
 export enum GamePhase {

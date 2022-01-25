@@ -40,15 +40,15 @@ export class Game {
     return game;
   }
 
-  countTimeMultiplier (timeDiffSeconds: number): number {
+  countAnswerPoints (timeDiffSeconds: number): number {
     let x = timeDiffSeconds;
-    const inMin = 0;
-    const inMax = 45;
-    const outMin = 2.0;
-    const outMax = 1.0;
-    x = x > inMax ? inMax : x;
-    const multiplier = (x - inMin) * (outMax - outMin) / (inMax - inMin) + outMin;
-    return Math.round((multiplier + Number.EPSILON) * 100) / 100;
+    const inMin = 30;
+    const inMax = 0;
+    const outMin = 10;
+    const outMax = 20;
+    x = x > inMin ? inMin : x;
+    const points = (x - inMin) * (outMax - outMin) / (inMax - inMin) + outMin;
+    return Math.round((points));
   }
 
   addFakes (amount: number): void {
@@ -128,17 +128,19 @@ export class Game {
     return this.id.split('_')[0];
   }
 
-  countExtraPoints (): void {
-    this.questions.forEach(question => {
-      const correctAnswers = question.playersAnsweredCorrect.length;
-      const playersAnswered = question.playersAnswered.length;
-      if (correctAnswers === playersAnswered || correctAnswers === 0) {
-        return;
-      }
-      const multiplier = 1 + (correctAnswers / playersAnswered);
-      const additionalScore = playersAnswered * multiplier;
-      question.owner.score += additionalScore;
-    });
+  countExtraPoints (question: Question): number {
+    // Give points for good questions. Hard, but not impossible!
+    const correctAnswers = question.playersAnsweredCorrect.length;
+    const playersAnswered = question.playersAnswered.length;
+    if (correctAnswers === playersAnswered || correctAnswers === 0) {
+      return -(5 * playersAnswered);
+    }
+    const x = correctAnswers;
+    const inMin = playersAnswered - 1;
+    const inMax = 1;
+    const outMax = playersAnswered * 5;
+    const outMin = 10;
+    return Math.round(10 + ((x - inMin) * (outMax - outMin) / (inMax - inMin) + outMin));
   }
 
   async endGame (): Promise<Player[]> {
@@ -147,10 +149,12 @@ export class Game {
     }
 
     this.phase = GamePhase.END;
-    this.countExtraPoints();
-    this.players.forEach(p => {
-      p.score = Math.round(p.score * 100) / 100;
+    this.questions.forEach(q => {
+      const xtra = this.countExtraPoints(q);
+      q.xtraPoints = xtra;
+      q.owner.score += xtra;
     });
+
     this.players.sort((pf, ps) => {
       return ps.score - pf.score;
     });
