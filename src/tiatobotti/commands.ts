@@ -4,15 +4,9 @@ import { getJoinGameBlocks, getLobbyBlocks } from './blocks';
 import { app } from '../app';
 import { getUser, launchQModal } from './helpers';
 
-const isDev = process.env.ENVIRONMENT ? process.env.ENVIRONMENT : "production";
-
-const getCommandName = (command: string): string => {
-  return isDev === 'production' ? command : command + '-dev';
-}
-
 // /startquiz command. This initializes new game and makes the "caller" an admin
 app.command(
-  getCommandName('/startquiz'),
+  '/startquiz',
   async ({ payload, say, body, ack, client }
   ): Promise<void> => {
   await ack();
