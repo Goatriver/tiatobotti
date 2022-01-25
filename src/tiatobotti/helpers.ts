@@ -1,8 +1,8 @@
 import { app } from '../app';
 import { WebClient } from '@slack/web-api';
 import { ViewsOpenResponse } from '@slack/web-api/dist/response';
-import { getQuestionBlocks, getReadyMessageBlocks, getSetQuestionBlocks } from './blocks';
-import { Player } from '../game/types';
+import {getEndGameBlocks, getQuestionBlocks, getReadyMessageBlocks, getSetQuestionBlocks} from './blocks';
+import {Player, Question} from '../game/types';
 import { Game } from '../game/game';
 
 interface MyUser {
@@ -70,6 +70,10 @@ export const launchQModal = async (
   });
 };
 
+const checkIfAnswered = (player: Player, question: Question): boolean => {
+  return question.playersAnswered.some(p => p.id === player.id);
+};
+
 // helper function to launch a question DM
 export const sendQuestion = async (
   player: Player,
@@ -121,6 +125,15 @@ export const sendQuestion = async (
         scoreEarned,
       )
     });
+
+    setTimeout(() => {
+      if(!checkIfAnswered(player, question)) {
+        console.log(`${player.name} didn't answer in time into question ${question.id}`);
+        question.playersAnswered.push(player);
+        sendQuestion(player, game).then(() => checkIfGameEnded(game));
+      }
+    },60 * 1000);
+
   }).catch(reason => {
     console.error('Error sending questions', reason);
     app.client.chat.postEphemeral({
@@ -138,3 +151,20 @@ export const generateQuestionId = (playerId: string, question: string): string =
   const shortQuestion = question.length > 10 ? question.substring(0, 9) : question;
   return (shortId + shortQuestion + randomInt.toString()).replace(' ', '_');
 };
+
+export const checkIfGameEnded = (game: Game) => {
+  const readyPlayers = game.players.filter(p => p.isReady);
+  if (readyPlayers.length === game.players.length) {
+    game.endGame().then(playerList => {
+      app.client.chat.delete({
+        channel: game.getChannelId(),
+        ts: game.ts
+      });
+      app.client.chat.postMessage({
+        channel: game.getChannelId(),
+        text: 'Game over!',
+        blocks: getEndGameBlocks(playerList, game.questions)
+      });
+    });
+  }
+}
