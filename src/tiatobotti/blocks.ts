@@ -7,6 +7,19 @@ export interface ChoiceValue {
   qId: string;
 }
 
+const getLastScore = (score: number | undefined): string => {
+  console.log(score);
+  if(typeof score === 'undefined') {
+    return '';
+  }
+
+  if(score <= 0) {
+    return 'Last answer was wrong!\n';
+  }
+
+  return `Last answer was correct! ${score} pts earned!\n`;
+}
+
 export const getJoinGameBlocks = (
   adminName: string,
   gameId: string,
@@ -174,13 +187,20 @@ export const getLobbyBlocks = (
   ];
 };
 
-export const getQuestionBlocks = (q: Question, gameId: string, progress: string): (Block | SectionBlock)[] => {
+export const getQuestionBlocks = (
+  q: Question,
+  gameId:string,
+  progress: string,
+  scoreEarned: number | undefined,
+): (Block | SectionBlock)[] => {
+
   return [
     {
       type: 'section',
       text: {
-        text: `${progress}: ${q.question}`,
-        type: 'plain_text'
+        text: getLastScore(scoreEarned) +
+          `*${progress}: ${q.question}*`,
+        type: 'mrkdwn'
       },
       accessory: {
         type: 'radio_buttons',
@@ -220,9 +240,22 @@ export const getEndGameBlocks = (players: Player[], questions: Question[]): (Blo
     const rightAnswersCount = playerQuestion.playersAnsweredCorrect.length;
     const totalAnswers = playerQuestion.playersAnswered.length;
 
+    const getExtraPointString = (xtraPoints: number | undefined): string => {
+      if(!xtraPoints) {
+        return '';
+      }
+
+      if(xtraPoints > 0) {
+        return ` ${xtraPoints} question points earned!`;
+      }
+      const everyOneKnew = totalAnswers === rightAnswersCount;
+      return ` ${everyOneKnew ? 'Everyone knew, so ' : 'No one knew, so '}${xtraPoints} question points reduced!`;
+    }
+
     return `"${playerQuestion.question}" \n` +
       `Answer: "${rightAnswer.text}" \n` +
-      `${rightAnswersCount}/${totalAnswers} got it right!`
+      `${rightAnswersCount}/${totalAnswers} got it right!` +
+      getExtraPointString(playerQuestion.xtraPoints);
   }
 
   return [
@@ -254,14 +287,19 @@ export const getEndGameBlocks = (players: Player[], questions: Question[]): (Blo
   ];
 };
 
-export const getReadyMessageBlocks = (questionsKnown: number, total: number):
+export const getReadyMessageBlocks = (
+  questionsKnown: number,
+  total: number,
+  lastScore: number | undefined,
+):
   (SectionBlock | Block)[] => {
   return [
     {
       type: 'section',
       text: {
         type: 'plain_text',
-        text: 'Thanks for playing. ' +
+        text: getLastScore(lastScore) +
+          'Thanks for playing. ' +
           'Winners & results are announced as soon as last player is ready!'
       }
     },

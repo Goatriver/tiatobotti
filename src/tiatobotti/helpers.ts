@@ -1,8 +1,8 @@
 import { app } from '../app';
 import { WebClient } from '@slack/web-api';
 import { ViewsOpenResponse } from '@slack/web-api/dist/response';
-import { getQuestionBlocks, getReadyMessageBlocks, getSetQuestionBlocks } from './blocks';
-import { Player } from '../game/types';
+import {getEndGameBlocks, getQuestionBlocks, getReadyMessageBlocks, getSetQuestionBlocks} from './blocks';
+import {Player, Question} from '../game/types';
 import { Game } from '../game/game';
 
 interface MyUser {
@@ -70,8 +70,16 @@ export const launchQModal = async (
   });
 };
 
+const checkIfAnswered = (player: Player, question: Question): boolean => {
+  return question.playersAnswered.some(p => p.id === player.id);
+};
+
 // helper function to launch a question DM
-export const sendQuestion = async (player: Player, game: Game): Promise<void> => {
+export const sendQuestion = async (
+  player: Player,
+  game: Game,
+  scoreEarned?: number
+): Promise<void> => {
   // COMPUTER DEBUG LOGIC
   if (game.debug) {
     const computerPlayers = game.players.filter(p => p.id.includes('debug'));
@@ -79,11 +87,10 @@ export const sendQuestion = async (player: Player, game: Game): Promise<void> =>
       game.getNextQuestion(cpuPlayer).then(question => {
         if (question) {
           question.playersAnswered.push(cpuPlayer);
-          if (Math.random() < 0.5) {
+          if (Math.random() < 0.65) {
             question.playersAnsweredCorrect.push(cpuPlayer);
-            const randomTime = Math.floor(Math.random() * 45);
-            const multiplier = game.countTimeMultiplier(randomTime);
-            cpuPlayer.score += (10 * multiplier);
+            const randomTime = Math.floor(Math.random() * 48);
+            cpuPlayer.score += game.countAnswerPoints(randomTime)
           }
         }
       });
@@ -100,18 +107,33 @@ export const sendQuestion = async (player: Player, game: Game): Promise<void> =>
       app.client.chat.postMessage({
         channel: player.id,
         text: "That's it, you are ready!",
-        blocks: getReadyMessageBlocks(questionsKnown, total)
+        blocks: getReadyMessageBlocks(questionsKnown, total, scoreEarned)
       });
       return;
     }
 
     player.lastQuestionSent = new Date();
+
     app.client.chat.postMessage({
       channel: player.id,
       text: 'I sent you a question!',
       value: game.id,
-      blocks: getQuestionBlocks(question, game.id, game.getProgress(player))
+      blocks: getQuestionBlocks(
+        question,
+        game.id,
+        game.getProgress(player),
+        scoreEarned,
+      )
     });
+
+    setTimeout(() => {
+      if(!checkIfAnswered(player, question)) {
+        console.log(`${player.name} didn't answer in time into question ${question.id}`);
+        question.playersAnswered.push(player);
+        sendQuestion(player, game).then(() => checkIfGameEnded(game));
+      }
+    },60 * 1000);
+
   }).catch(reason => {
     console.error('Error sending questions', reason);
     app.client.chat.postEphemeral({
@@ -129,3 +151,20 @@ export const generateQuestionId = (playerId: string, question: string): string =
   const shortQuestion = question.length > 10 ? question.substring(0, 9) : question;
   return (shortId + shortQuestion + randomInt.toString()).replace(' ', '_');
 };
+
+export const checkIfGameEnded = (game: Game) => {
+  const readyPlayers = game.players.filter(p => p.isReady);
+  if (readyPlayers.length === game.players.length) {
+    game.endGame().then(playerList => {
+      app.client.chat.delete({
+        channel: game.getChannelId(),
+        ts: game.ts
+      });
+      app.client.chat.postMessage({
+        channel: game.getChannelId(),
+        text: 'Game over!',
+        blocks: getEndGameBlocks(playerList, game.questions)
+      });
+    });
+  }
+}
