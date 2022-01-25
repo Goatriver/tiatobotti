@@ -1,17 +1,17 @@
-import {BlockAction, ButtonAction, SlackActionMiddlewareArgs} from '@slack/bolt';
+import { BlockAction, ButtonAction, SlackActionMiddlewareArgs } from '@slack/bolt';
 
-import {app} from '../app';
-import {Game} from '../game/game';
-import {checkIfGameEnded, launchQModal, sendQuestion} from './helpers';
+import { app } from '../app';
+import { Game } from '../game/game';
+import { checkIfGameEnded, launchQModal, sendQuestion } from './helpers';
 import {
   GameAlreadyEndedError,
   GameAlreadyStartedError,
   NotEnoughPlayersError,
   PlayerAlreadyAnsweredError
 } from '../game/errors';
-import {ChoiceValue} from './blocks';
-import {GamePhase} from '../game/types';
-import {RadioButtonsAction} from '@slack/bolt/dist/types/actions/block-action';
+import { ChoiceValue } from './blocks';
+import { GamePhase } from '../game/types';
+import { RadioButtonsAction } from '@slack/bolt/dist/types/actions/block-action';
 
 // When users are clickin' "join game" button
 app.action('join_game_click', async ({ body, payload, ack }) => {
@@ -108,14 +108,14 @@ app.action('answer', async ({ ack, action, body }) => {
   }
 
   await Game.get(answer.gameId).then(game => {
-    if(game.phase === GamePhase.END) {
+    if (game.phase === GamePhase.END) {
       throw new GameAlreadyEndedError(game.id);
     }
     const player = game.players.filter(p => p.id === body.user.id)[0];
     const question = game.questions.filter(
       q => q.id === answer.qId
     )[0];
-    if(question.playersAnswered.some(p => p.id === player.id)) {
+    if (question.playersAnswered.some(p => p.id === player.id)) {
       throw new PlayerAlreadyAnsweredError(question.question);
     }
     const timeDiff = new Date().getTime() - player.lastQuestionSent.getTime();

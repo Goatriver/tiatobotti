@@ -9,16 +9,16 @@ export interface ChoiceValue {
 
 const getLastScore = (score: number | undefined): string => {
   console.log(score);
-  if(typeof score === 'undefined') {
+  if (typeof score === 'undefined') {
     return '';
   }
 
-  if(score <= 0) {
+  if (score <= 0) {
     return 'Last answer was wrong!\n';
   }
 
   return `Last answer was correct! ${score} pts earned!\n`;
-}
+};
 
 export const getJoinGameBlocks = (
   adminName: string,
@@ -191,9 +191,8 @@ export const getQuestionBlocks = (
   q: Question,
   gameId:string,
   progress: string,
-  scoreEarned: number | undefined,
+  scoreEarned: number | undefined
 ): (Block | SectionBlock)[] => {
-
   return [
     {
       type: 'section',
@@ -241,22 +240,22 @@ export const getEndGameBlocks = (players: Player[], questions: Question[]): (Blo
     const totalAnswers = playerQuestion.playersAnswered.length;
 
     const getExtraPointString = (xtraPoints: number | undefined): string => {
-      if(!xtraPoints) {
+      if (!xtraPoints) {
         return '';
       }
 
-      if(xtraPoints > 0) {
+      if (xtraPoints > 0) {
         return ` ${xtraPoints} question points earned!`;
       }
       const everyOneKnew = totalAnswers === rightAnswersCount;
       return ` ${everyOneKnew ? 'Everyone knew, so ' : 'No one knew, so '}${xtraPoints} question points reduced!`;
-    }
+    };
 
     return `"${playerQuestion.question}" \n` +
       `Answer: "${rightAnswer.text}" \n` +
       `${rightAnswersCount}/${totalAnswers} got it right!` +
       getExtraPointString(playerQuestion.xtraPoints);
-  }
+  };
 
   return [
     {
@@ -290,7 +289,7 @@ export const getEndGameBlocks = (players: Player[], questions: Question[]): (Blo
 export const getReadyMessageBlocks = (
   questionsKnown: number,
   total: number,
-  lastScore: number | undefined,
+  lastScore: number | undefined
 ):
   (SectionBlock | Block)[] => {
   return [
@@ -310,7 +309,7 @@ export const getReadyMessageBlocks = (
       type: 'section',
       text: {
         type: 'mrkdwn',
-        text: `You got *${questionsKnown}/${total}* of the questions right! \n`,
+        text: `You got *${questionsKnown}/${total}* of the questions right! \n`
       }
     }
   ];

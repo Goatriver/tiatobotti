@@ -48,7 +48,7 @@ export class NotEnoughPlayersError extends Error {
 }
 
 export class PlayerAlreadyAnsweredError extends Error {
-  constructor(question: string) {
+  constructor (question: string) {
     const message = `You have already answered to "${question}", you little cheater!`;
     super(message);
     Object.setPrototypeOf(this, PlayerAlreadyAnsweredError.prototype);
