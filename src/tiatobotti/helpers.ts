@@ -1,8 +1,8 @@
 import { app } from '../app';
 import { WebClient } from '@slack/web-api';
 import { ViewsOpenResponse } from '@slack/web-api/dist/response';
-import {getEndGameBlocks, getQuestionBlocks, getReadyMessageBlocks, getSetQuestionBlocks} from './blocks';
-import {Player, Question} from '../game/types';
+import { getEndGameBlocks, getQuestionBlocks, getReadyMessageBlocks, getSetQuestionBlocks } from './blocks';
+import { Player, Question } from '../game/types';
 import { Game } from '../game/game';
 
 interface MyUser {
@@ -21,13 +21,13 @@ export const getUser = async (id: string): Promise<MyUser> => {
     };
 
     if (response.user && response.user.profile) {
-      if(response.user.profile.display_name_normalized) {
+      if (response.user.profile.display_name_normalized) {
         user.name = response.user.profile.display_name_normalized;
-      } else if(response.user.profile.display_name) {
+      } else if (response.user.profile.display_name) {
         user.name = response.user.profile.display_name;
-      } else if(response.user.profile.real_name_normalized) {
+      } else if (response.user.profile.real_name_normalized) {
         user.name = response.user.profile.real_name_normalized;
-      } else if(response.user.profile.real_name) {
+      } else if (response.user.profile.real_name) {
         user.name = response.user.profile.real_name;
       }
 
@@ -35,7 +35,6 @@ export const getUser = async (id: string): Promise<MyUser> => {
         user.avatar = response.user.profile.image_512;
       }
     }
-
 
     return user;
   }).catch(reason => {
@@ -90,7 +89,7 @@ export const sendQuestion = async (
           if (Math.random() < 0.65) {
             question.playersAnsweredCorrect.push(cpuPlayer);
             const randomTime = Math.floor(Math.random() * 48);
-            cpuPlayer.score += game.countAnswerPoints(randomTime)
+            cpuPlayer.score += game.countAnswerPoints(randomTime);
           }
         }
       });
@@ -122,18 +121,17 @@ export const sendQuestion = async (
         question,
         game.id,
         game.getProgress(player),
-        scoreEarned,
+        scoreEarned
       )
     });
 
     setTimeout(() => {
-      if(!checkIfAnswered(player, question)) {
+      if (!checkIfAnswered(player, question)) {
         console.log(`${player.name} didn't answer in time into question ${question.id}`);
         question.playersAnswered.push(player);
         sendQuestion(player, game).then(() => checkIfGameEnded(game));
       }
-    },60 * 1000);
-
+    }, 60 * 1000);
   }).catch(reason => {
     console.error('Error sending questions', reason);
     app.client.chat.postEphemeral({
@@ -167,4 +165,4 @@ export const checkIfGameEnded = (game: Game) => {
       });
     });
   }
-}
+};
